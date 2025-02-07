@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Image Zoom</title>
+    <style>
+        body {
+            background: url('배경.png'); 
+            background-size: cover;
+            text-align: center;
+        }
+        .container {
+            position: relative;
+            display: inline-block;
+            overflow: hidden;
+        }
+        .background-img, .custom-marker {
+            width: 1000px;
+            transition: transform 1s ease, opacity 1s ease;
+        }
+        .custom-marker {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            cursor: pointer;
+            z-index: 10;
+        }
+        .hidden-images {
+            position: absolute;
+            display: none;
+            width: 170px;
+            height: 170px;
+        }
+        .hidden-images2 {
+            position: absolute;
+            display: none;
+            width: 130px;
+            height: 130px;
+        }
+        .marker-label {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 13px 40px;
+            border-radius: 15px;
+            display: none;
+            z-index: 20;
+            font-size: 30px;
+            font-weight: bold;
+            font-family: "Gmarket Sans", Bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="image-container">
+        <img src="2003korea_map.png" alt="Background" class="background-img" id="main-img">
+        
+        <script>
+            const markers = [
+                { id: 1, top: 110, left: 80, img: "갈치수정.png", hoverImg: "갈치.png", label: "갈치: 808톤", labelOffset: { x: 220, y: 40 }, 
+                extraImg: "아귀.png", extraImgPos: { top: 210, left: 200 }, label2: "아귀: 679톤", labelOffset2: { x: 200, y: 35 }, 
+                extraImg2: "가오리.png", extraImg2Pos: { top: 340, left: 150 }, label3: "가오리: 381톤", labelOffset3: { x: 150, y: 40 } },
+
+                { id: 2, top: 180, left: 230, img: "조피볼락수정.png", hoverImg: "조피볼락.png",label: "조피볼락: 185톤", labelOffset: { x: 220, y: 40 },
+                extraImg: "노래미.png", extraImgPos: { top: 20, left: 20 }, label2: "노래미: 64톤", labelOffset2: { x: 200, y: 55 }, 
+                extraImg2: "가오리.png", extraImg2Pos: { top: 340, left: 150 }, label3: "가오리: 29톤", labelOffset3: { x: 150, y: 40 } }, //경기
+
+                { id: 3, top: 300, left: 70, img: "멸치수정.png", hoverImg: "멸치.png",label: "멸치: 4,741톤", labelOffset: { x: 220, y: 40 },
+                extraImg: "뱅어.png", extraImgPos: { top: 370, left: 200 }, label2: "뱅어: 3,021톤", labelOffset2: { x: 200, y: 55 }, 
+                extraImg2: "아귀.png", extraImg2Pos: { top: 480, left: 150 }, label3: "아귀: 1,355톤", labelOffset3: { x: 150, y: 40 } }, //충남
+
+                { id: 4, top: 485, left: 80, img: "멸치수정.png", hoverImg: "멸치.png",label: "멸치: 4,849톤", labelOffset: { x: 220, y: 40 },
+                extraImg: "아귀.png", extraImgPos: { top: 325, left: 120 }, label2: "아귀: 1,172톤", labelOffset2: { x: 200, y: 55 }, 
+                extraImg2: "갈치.png", extraImg2Pos: { top: 410, left: 540 }, label3: "갈치: 675톤", labelOffset3: { x: 150, y: 35 } }, //전북
+
+                { id: 5, top: 630, left: 60, img: "멸치수정.png", hoverImg: "멸치.png",label: "멸치: 52,602톤", labelOffset: { x: 220, y: 40 },
+                extraImg: "강달이.png", extraImgPos: { top: 520, left: 200 }, label2: "강달이: 13,772톤", labelOffset2: { x: 200, y: 55 }, 
+                extraImg2: "갈치.png", extraImg2Pos: { top: 440, left: 150 }, label3: "갈치: 6,829톤", labelOffset3: { x: 150, y: 40 } }, //전남
+
+                { id: 6, top: 800, left: 150, img: "갈치수정.png", hoverImg: "갈치.png",label: "갈치: 18,289톤", labelOffset: { x: 220, y: 40 },
+                extraImg: "멸치.png", extraImgPos: { top: 680, left: 200 }, label2: "멸치: 7,983톤", labelOffset2: { x: 200, y: 55 }, 
+                extraImg2: "고등어.png", extraImg2Pos: { top: 600, left: 150 }, label3: "고등어: 3,397톤", labelOffset3: { x: 150, y: 40 } }, //제주
+
+                { id: 7, top: 760, left: 690, img: "멸치수정.png", hoverImg: "멸치.png",label: "멸치: 139,924톤", labelOffset: { x: -420, y: 40 },
+                extraImg: "붕장어.png", extraImgPos: { top: 640, left: 600 }, label2: "붕장어: 10,233톤", labelOffset2: { x: -370, y: 55 }, 
+                extraImg2: "갈치.png", extraImg2Pos: { top: 560, left: 700 }, label3: "갈치: 9,570톤", labelOffset3: { x: -380, y: 40 } }, //경남
+
+                { id: 8, top: 570, left: 800, img: "고등어수정.png", hoverImg: "고등어.png",label: "고등어: 106,045톤", labelOffset: { x: -420, y: 40 },
+                extraImg: "멸치.png", extraImgPos: { top: 340, left: 700 }, label2: "멸치: 33,543톤", labelOffset2: { x: -410, y: 55 }, 
+                extraImg2: "갈치.png", extraImg2Pos: { top: 450, left: 780 }, label3: "갈치: 26,650톤", labelOffset3: { x: -380, y: 40 } },  //부산
+
+                { id: 9, top: 350, left: 780, img: "가자미수정.png", hoverImg: "가자미.png",label: "가자미: 3,873톤", labelOffset: { x: -420, y: 40 },
+                extraImg: "멸치.png", extraImgPos: { top: 170, left: 700 }, label2: "멸치: 2,483톤", labelOffset2: { x: -300, y: 55 }, 
+                extraImg2: "전갱이.png", extraImg2Pos: { top: 500, left: 830 }, label3: "전갱이: 2,085톤", labelOffset3: { x: -330, y: 40 } }, //경북
+
+                { id: 10, top: 100, left: 700, img: "임연수어수정.png", hoverImg: "임연수어.png",label: "임연수어: 2,540톤", labelOffset: { x: -420, y: 40 },
+                extraImg: "가자미.png", extraImgPos: { top: 210, left: 450 }, label2: "가자미: 1,936톤", labelOffset2: { x: -300, y: 55 }, 
+                extraImg2: "도루묵.png", extraImg2Pos: { top: 340, left: 560 }, label3: "도루묵: 1,223톤", labelOffset3: { x: -380, y: 40 }} //강원
+            ];
+
+            let activeMarkerId = null;
+
+            markers.forEach(marker => {
+                document.write(`
+                    <img src="${marker.img}" alt="Marker" class="custom-marker" id="marker-${marker.id}" 
+                    style="top: ${marker.top}px; left: ${marker.left}px;"
+                    onclick="toggleZoom(event, ${marker.id}, '${marker.hoverImg}', '${marker.img}')">
+                    
+                    <div class="marker-label" id="label-${marker.id}" style="top: ${marker.top + marker.labelOffset.y}px; left: ${marker.left + marker.labelOffset.x}px;">
+                        ${marker.label}
+                    </div>
+
+                    ${marker.extraImg ? `<img src="${marker.extraImg}" class="hidden-images" id="extra1-${marker.id}" style="top: ${marker.extraImgPos.top}px; left: ${marker.extraImgPos.left}px;">` : ''}
+                    ${marker.extraImg ? `<div class="marker-label" id="label2-${marker.id}" style="top: ${marker.extraImgPos.top + (marker.labelOffset2?.y || 0)}px; left: ${marker.extraImgPos.left + (marker.labelOffset2?.x || 0)}px; display: none;">${marker.label2 || ''}</div>` : ''}
+
+                    ${marker.extraImg2 ? `<img src="${marker.extraImg2}" class="hidden-images2" id="extra2-${marker.id}" style="top: ${marker.extraImg2Pos.top}px; left: ${marker.extraImg2Pos.left}px;">` : ''}
+                    ${marker.extraImg2 ? `<div class="marker-label" id="label3-${marker.id}" style="top: ${marker.extraImg2Pos.top + (marker.labelOffset3?.y || 0)}px; left: ${marker.extraImg2Pos.left + (marker.labelOffset3?.x || 0)}px; display: none;">${marker.label3 || ''}</div>` : ''}
+                `);
+            });
+
+            function toggleZoom(event, id, hoverImg, originalImg) {
+                let img = document.getElementById("main-img");
+                let marker = document.getElementById(`marker-${id}`);
+                let label = document.getElementById(`label-${id}`);
+                let extraImg = document.getElementById(`extra1-${id}`);
+                let extraImg2 = document.getElementById(`extra2-${id}`);
+                let label2 = document.getElementById(`label2-${id}`);
+                let label3 = document.getElementById(`label3-${id}`);
+
+                if (activeMarkerId === id) {
+                    resetZoom(id, originalImg);
+                    activeMarkerId = null;
+                    return;
+                }
+
+                activeMarkerId = id;
+
+                let rect = img.getBoundingClientRect();
+                let x = (event.clientX - rect.left) / rect.width * 100;
+                let y = (event.clientY - rect.top) / rect.height * 100;
+
+                img.style.transformOrigin = `${x}% ${y}%`;
+                img.style.transform = "scale(2.5)";
+                img.style.opacity = "0.5";
+
+                marker.style.transform = "scale(2)";
+                marker.src = hoverImg;
+                label.style.display = "block";
+
+                if (extraImg) {
+                    extraImg.style.display = "block";
+                    if (label2) label2.style.display = "block";
+                }
+                if (extraImg2) {
+                    extraImg2.style.display = "block";
+                    if (label3) label3.style.display = "block";
+                }
+
+                markers.forEach(m => {
+                    if (m.id !== id) {
+                        document.getElementById(`marker-${m.id}`).style.display = "none";
+                        document.getElementById(`label-${m.id}`).style.display = "none";
+                    }
+                });
+            }
+
+            function resetZoom(id, originalImg) {
+                let img = document.getElementById("main-img");
+                let marker = document.getElementById(`marker-${id}`);
+                let label = document.getElementById(`label-${id}`);
+                let extraImg = document.getElementById(`extra1-${id}`);
+                let extraImg2 = document.getElementById(`extra2-${id}`);
+                let label2 = document.getElementById(`label2-${id}`);
+                let label3 = document.getElementById(`label3-${id}`);
+
+                img.style.transform = "scale(1)";
+                img.style.opacity = "1";
+                marker.style.transform = "scale(1)";
+                marker.src = originalImg;
+                label.style.display = "none";
+
+                if (extraImg) {
+                    extraImg.style.display = "none";
+                    if (label2) label2.style.display = "none";
+                }
+                if (extraImg2) {
+                    extraImg2.style.display = "none";
+                    if (label3) label3.style.display = "none";
+                }
+
+                markers.forEach(m => {
+                    document.getElementById(`marker-${m.id}`).style.display = "block";
+                });
+            }
+        </script>
+    </div>
+
+    <a class="back-button" href="index.html" style="font-family: 'Gmarket Sans', bold;">
+        다른 연도는?
+    </a>
+
+    <style>
+        .back-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-size: 1.2em;
+            font-family: "Gmarket Sans", Bold;
+        }
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+    </style>
+
+</body>
+</html>
+
+
+
